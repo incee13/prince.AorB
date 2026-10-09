@@ -16,19 +16,14 @@ function buildWheel(){
 }
 buildWheel();
 
-function defaultPic(t){
-  var c=colors[t],svg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400"><defs><radialGradient id="g" cx="50%" cy="40%" r="80%"><stop offset="0" stop-color="#fff" stop-opacity=".55"/><stop offset="1" stop-color="'+c+'"/></radialGradient></defs><rect width="400" height="400" fill="url(#g)"/><circle cx="70" cy="80" r="60" fill="#fff" opacity=".18"/><circle cx="340" cy="330" r="90" fill="#fff" opacity=".15"/><circle cx="330" cy="60" r="35" fill="#fff" opacity=".2"/></svg>';
-  return 'url("data:image/svg+xml;utf8,'+encodeURIComponent(svg)+'")';
-}
-function loadPic(inp,t){
-  inp.addEventListener('change',function(){
-    var f=inp.files&&inp.files[0]; if(!f)return;
-    var r=new FileReader();
-    r.onload=function(){pics[t]='url("'+r.result+'")';$('msg').textContent='Picture for '+t+' added ✅'};
-    r.readAsDataURL(f);
-  });
-}
-loadPic($('fa'),'A'); loadPic($('fb'),'B');
+// ===== THE PICTURES (already set, edit these to change them) =====
+function toBg(svg){return 'url("data:image/svg+xml;utf8,'+encodeURIComponent(svg)+'")'}
+
+// Picture for A: sunny sky + green hills
+pics.A = 'url("images/pic1.jpg")';
+
+// Picture for B: sunset sky + dark hills
+pics.B = 'url("images/dark-sky.jpg")';
 
 $('go').addEventListener('click',function(){
   if(spinning)return;
@@ -49,7 +44,7 @@ $('go').addEventListener('click',function(){
 
 function showResult(res,la,lb,q){
   var r=$('result');
-  r.style.backgroundImage=pics[res]||defaultPic(res);
+  r.style.backgroundImage=pics[res];
   $('rl').textContent=res;
   $('rm').textContent=res==='A'?la:lb;
   $('rq').textContent=q;
