@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>A or B Wheel</title>
+<style>
+:root{--bg:#fff7ec;--card:#ffffff;--text:#2b2118;--muted:#7a6a5a;--a:#14b8a6;--b:#fb7185;--line:#eadfce;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#17120d;--card:#241c14;--text:#f7efe4;--muted:#b8a994;--line:#3a2f23}}
+:root[data-theme="dark"]{--bg:#17120d;--card:#241c14;--text:#f7efe4;--muted:#b8a994;--line:#3a2f23}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--text);font-family:"Trebuchet MS","Segoe UI",system-ui,sans-serif;min-height:100%;padding:16px}
+main{max-width:520px;margin:0 auto}
+h1{text-align:center;margin:8px 0 4px;font-size:1.9rem;letter-spacing:.5px}
+.sub{text-align:center;color:var(--muted);margin:0 0 14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:14px;margin-bottom:14px}
+.notice{border-left:5px solid var(--b);font-weight:700}
+.row{display:flex;gap:10px;align-items:center;margin:8px 0;flex-wrap:wrap}
+.badge{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:900;font-size:1.2rem;flex:none}
+input[type=text]{flex:1;min-width:0;padding:11px 12px;border-radius:12px;border:2px solid var(--line);background:var(--bg);color:var(--text);font-size:1rem}
+input[type=text]:focus{outline:none;border-color:var(--a)}
+label.up{font-size:.85rem;color:var(--muted);cursor:pointer;text-decoration:underline}
+label.up input{display:none}
+.wheelwrap{position:relative;width:min(86vw,340px);aspect-ratio:1;margin:8px auto 14px}
+#wheel{width:100%;height:100%;transition:transform 4.6s cubic-bezier(.12,.7,.1,1);filter:drop-shadow(0 6px 10px rgba(0,0,0,.25))}
+.arrow{position:absolute;top:-10px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:16px solid transparent;border-right:16px solid transparent;border-top:34px solid var(--text);z-index:2}
+button.spin{width:100%;padding:15px;border:0;border-radius:14px;font-size:1.2rem;font-weight:900;color:#fff;background:linear-gradient(90deg,var(--a),var(--b));cursor:pointer}
+button.spin:disabled{opacity:.6}
+#msg{color:var(--b);font-weight:700;min-height:1.3em;margin:6px 0 0;text-align:center}
+#result{position:fixed;inset:0;z-index:10;display:none;align-items:center;justify-content:center;text-align:center;background-size:cover;background-position:center;padding:20px}
+#result.show{display:flex}
+#result .pop{background:rgba(0,0,0,.45);color:#fff;border-radius:24px;padding:26px 30px;max-width:92vw;backdrop-filter:blur(3px);animation:pop .6s cubic-bezier(.2,1.6,.4,1)}
+#result .big{font-size:8.5rem;line-height:1;font-weight:900;text-shadow:0 6px 20px rgba(0,0,0,.5)}
+#result .mean{font-size:1.7rem;font-weight:800;margin:4px 0}
+#result .q{opacity:.9;margin:0 0 16px}
+#result button{padding:12px 22px;border-radius:12px;border:0;font-weight:800;font-size:1rem;cursor:pointer}
+@keyframes pop{0%{transform:scale(.2) rotate(-12deg);opacity:0}100%{transform:scale(1) rotate(0);opacity:1}}
+</style>
+</head>
+<body>
+<main>
+  <h1>A or B?</h1>
+  <p class="sub">A yes-or-no wheel. You make the rules.</p>
+
+  <div class="card notice">⚠️ Decide first: which one is YES and which is NO? Type what A and B mean below. Whatever you choose, that's final once the wheel lands!</div>
+
+  <div class="card">
+    <div class="row"><span class="badge" style="background:var(--a)">A</span><input type="text" id="la" placeholder="A means... (e.g. Gagamitin)" maxlength="30"></div>
+    <div class="row"><span class="badge" style="background:var(--b)">B</span><input type="text" id="lb" placeholder="B means... (e.g. Hindi gagamitin)" maxlength="30"></div>
+    <div class="row">
+      <label class="up">🖼️ Picture for A<input type="file" accept="image/*" id="fa"></label>
+      <label class="up">🖼️ Picture for B<input type="file" accept="image/*" id="fb"></label>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="row"><input type="text" id="cond" placeholder="Your condition / question (e.g. Gagamitin ko ba 'to?)" maxlength="80"></div>
+    <div class="wheelwrap"><div class="arrow"></div><svg id="wheel" viewBox="-100 -100 200 200"></svg></div>
+    <button class="spin" id="go">SPIN!</button>
+    <p id="msg"></p>
+  </div>
+</main>
+
+<div id="result"><div class="pop">
+  <div class="big" id="rl"></div>
+  <div class="mean" id="rm"></div>
+  <p class="q" id="rq"></p>
+  <button id="again">Spin again</button>
+</div></div>
+
+<script>
+var N=8, STEP=360/N, cur=0, spinning=false;
+var colors={A:'#14b8a6',B:'#fb7185'};
+var pics={A:null,B:null};
+var $=function(i){return document.getElementById(i)};
+
+function polar(r,deg){var a=(deg-90)*Math.PI/180;return [r*Math.cos(a),r*Math.sin(a)]}
+function buildWheel(){
+  var w=$('wheel'),s='';
+  for(var i=0;i<N;i++){
+    var t=i%2===0?'A':'B',p1=polar(96,i*STEP),p2=polar(96,(i+1)*STEP),mid=polar(66,i*STEP+STEP/2);
+    s+='<path d="M0 0L'+p1[0]+' '+p1[1]+'A96 96 0 0 1 '+p2[0]+' '+p2[1]+'Z" fill="'+colors[t]+'" stroke="#fff" stroke-width="1.5"/>';
+    s+='<text x="'+mid[0]+'" y="'+mid[1]+'" fill="#fff" font-size="20" font-weight="900" text-anchor="middle" dominant-baseline="central" transform="rotate('+(i*STEP+STEP/2)+' '+mid[0]+' '+mid[1]+')">'+t+'</text>';
+  }
+  s+='<circle r="10" fill="#fff" stroke="#999"/>';
+  w.innerHTML=s;
+}
+buildWheel();
+
+function defaultPic(t){
+  var c=colors[t],svg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400"><defs><radialGradient id="g" cx="50%" cy="40%" r="80%"><stop offset="0" stop-color="#fff" stop-opacity=".55"/><stop offset="1" stop-color="'+c+'"/></radialGradient></defs><rect width="400" height="400" fill="url(#g)"/><circle cx="70" cy="80" r="60" fill="#fff" opacity=".18"/><circle cx="340" cy="330" r="90" fill="#fff" opacity=".15"/><circle cx="330" cy="60" r="35" fill="#fff" opacity=".2"/></svg>';
+  return 'url("data:image/svg+xml;utf8,'+encodeURIComponent(svg)+'")';
+}
+function loadPic(inp,t){
+  inp.addEventListener('change',function(){
+    var f=inp.files&&inp.files[0]; if(!f)return;
+    var r=new FileReader();
+    r.onload=function(){pics[t]='url("'+r.result+'")';$('msg').textContent='Picture for '+t+' added ✅'};
+    r.readAsDataURL(f);
+  });
+}
+loadPic($('fa'),'A'); loadPic($('fb'),'B');
+
+$('go').addEventListener('click',function(){
+  if(spinning)return;
+  var la=$('la').value.trim(),lb=$('lb').value.trim(),q=$('cond').value.trim();
+  if(!la||!lb){$('msg').textContent='Decide first! Type what A and B mean.';return}
+  if(!q){$('msg').textContent='Type your condition / question first.';return}
+  $('msg').textContent='';
+  spinning=true;$('go').disabled=true;
+  var res=Math.random()<.5?'A':'B';
+  var cands=[];for(var i=0;i<N;i++){if((i%2===0?'A':'B')===res)cands.push(i)}
+  var seg=cands[Math.floor(Math.random()*cands.length)];
+  var t=seg*STEP+6+Math.random()*(STEP-12);
+  var target=Math.ceil(cur/360)*360+360*6+((360-t)%360);
+  cur=target;
+  $('wheel').style.transform='rotate('+target+'deg)';
+  setTimeout(function(){showResult(res,la,lb,q)},4800);
+});
+
+function showResult(res,la,lb,q){
+  var r=$('result');
+  r.style.backgroundImage=pics[res]||defaultPic(res);
+  $('rl').textContent=res;
+  $('rm').textContent=res==='A'?la:lb;
+  $('rq').textContent=q;
+  r.classList.add('show');
+}
+$('again').addEventListener('click',function(){
+  $('result').classList.remove('show');
+  spinning=false;$('go').disabled=false;
+});
+</script>
+</body>
+</html>
