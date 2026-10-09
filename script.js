@@ -23,7 +23,7 @@ function toBg(svg){return 'url("data:image/svg+xml;utf8,'+encodeURIComponent(svg
 pics.A = 'url("images/pic1.jpg")';
 
 // Picture for B: sunset sky + dark hills
-pics.B = 'url("images/dark-sky.jpg")';
+pics.B = 'url("images/pic1copy.jpg")';
 
 $('go').addEventListener('click',function(){
   if(spinning)return;
