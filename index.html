@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>A or B Wheel</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main>
+  <h1>A or B?</h1>
+  <p class="sub">A yes-or-no wheel. You make the rules.</p>
+
+  <div class="card notice">⚠️ Decide first: which one is YES and which is NO? Type what A and B mean below. Whatever you choose, that's final once the wheel lands!</div>
+
+  <div class="card">
+    <div class="row"><span class="badge" style="background:var(--a)">A</span><input type="text" id="la" placeholder="A means... (e.g. Gagamitin)" maxlength="30"></div>
+    <div class="row"><span class="badge" style="background:var(--b)">B</span><input type="text" id="lb" placeholder="B means... (e.g. Hindi gagamitin)" maxlength="30"></div>
+    <div class="row">
+      <label class="up">🖼️ Picture for A<input type="file" accept="image/*" id="fa"></label>
+      <label class="up">🖼️ Picture for B<input type="file" accept="image/*" id="fb"></label>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="row"><input type="text" id="cond" placeholder="Your condition / question (e.g. Gagamitin ko ba 'to?)" maxlength="80"></div>
+    <div class="wheelwrap"><div class="arrow"></div><svg id="wheel" viewBox="-100 -100 200 200"></svg></div>
+    <button class="spin" id="go">SPIN!</button>
+    <p id="msg"></p>
+  </div>
+</main>
+
+<div id="result"><div class="pop">
+  <div class="big" id="rl"></div>
+  <div class="mean" id="rm"></div>
+  <p class="q" id="rq"></p>
+  <button id="again">Spin again</button>
+</div></div>
+
+<script src="script.js"></script>
+</body>
+</html>
